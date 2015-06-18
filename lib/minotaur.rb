@@ -1,0 +1,2 @@
+module Minotaur
+end
