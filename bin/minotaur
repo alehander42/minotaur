@@ -3,3 +3,29 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rspec'
 require 'minotaur'
+require 'parser/ruby22'
+
+if ARGV.length == 0
+  puts 'minotaur <filename> [--to-binary --show-ruby --show-ast --show-typed-ast]'
+else
+  filename = ARGV.first
+  show_ruby	 	 = ARGV[1..-1].include?('--show-typed-ast')
+  show_ast  	 = ARGV[1..-1].include?('--show-ast')
+  show_typed_ast = ARGV[1..-1].include?('--show-ruby')
+  to_binary	     = ARGV[1..-1].include?('--to-binary')
+  source = File.read(filename)
+  ruby_ast 		 = Parser::Ruby22.parse(source)
+  p ruby_ast if show_ruby
+  ast            = Minotaur::convert_ast(source)
+  p ast if show_ast
+  typed_ast      = Minotaur::type_analyse(ast)
+  p typed_ast if show_typed_ast
+  expanded_ast   = Minotaur::expand_ast(ast)
+  c              = Minotaur::generate_c(expanded_ast)
+  File.write("#{filename}.c", c)
+  if to_binary
+  	`c99 -o #{filename.split('.').first} #{filename}.c`
+  end
+end
+
+

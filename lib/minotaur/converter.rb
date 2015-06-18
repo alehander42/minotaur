@@ -6,7 +6,7 @@ require_relative 'ast'
 require_relative 'c_type'
 
 module Minotaur
-  def self.convert(ast)
+  def self.convert_ast(ast)
   	Converter.new.convert(ast)
   end
 
