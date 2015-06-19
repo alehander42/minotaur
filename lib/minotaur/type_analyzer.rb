@@ -65,11 +65,29 @@ module Minotaur
     # y is a pointer y->z
     def analyze_attr(node)
       analyze_type(node.receiver)
+
       analyze_type(node.attr)
       if node.receiver.c_type.pointer?
-        node.kind = :pointer_attr
+        s = @structs[node.receiver.c_type.base.label.to_sym]
+        kind = :pointer_attr
+        p_type = node.receiver.c_type
+      else
+        s = @structs[node.receiver.c_type.label.to_sym]
+        kind = :attr
+        p_type = Pointer.new(node.receiver.c_type)
       end
-      node.c_type = node.attr.c_type
+      if s.key?(node.attr)
+        node.c_type = s[node.attr]
+        node.kind = kind
+      else
+        f_type = @functions[node.attr][:_c_type]
+        expect_type(p_type, f_type.type_args.first)
+        node.kind = :call
+        node.callee = n(:ident, c_type: f_type, label: node.attr,)
+        node.receiver.c_type = p_type
+        node.args = [node.receiver]
+        node.c_type = f_type.type_args.last
+      end
     end
 
     def analyze_assignment(node)

@@ -5,7 +5,7 @@ require_relative 'minotaur/c_type'
 require_relative 'minotaur/converter'
 require_relative 'minotaur/errors'
 require_relative 'minotaur/expander'
-require_relative 'minotaur/type_analyser'
+require_relative 'minotaur/type_analyzer'
 
 module Minotaur
 end

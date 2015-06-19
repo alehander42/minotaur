@@ -4,7 +4,7 @@ require 'spec_helper'
 module Minotaur
   describe '.convert_ast' do
     it 'can convert ints' do
-      expect_converted('2', n(:int, value: 2))
+      expect_converted('2', n(:uint, value: 2))
     end
 
     it 'can convert strings' do
@@ -13,16 +13,16 @@ module Minotaur
 
     it 'can convert top level functions' do
       code = <<-MINOTAUR
-          def add2(a: Int32) Int32
-            a + 2
+          def add929(a: Int32) Int32
+            a + 929
           end
       MINOTAUR
 
       expect_converted(code, n(:function,
-        label: :add2,
+        label: :add929,
         args:  [n(:arg, label: :a, c_type: Builtin::Int32)],
         return_type: Builtin::Int32,
-        body:  [n(:binary_math, left: n(:ident, label: :a), right: n(:int, value: 2), op: :+)]))
+        body:  [n(:binary_math, left: n(:ident, label: :a), right: n(:uint, value: 929), op: :+)]))
     end
 
     it 'can convert classes' do
@@ -50,7 +50,7 @@ module Minotaur
           n(:arg, label: :a, c_type: Builtin::UInt16)],
           return_type: Builtin::Void, body: [
             n(:field_assignment, label: :a, value: n(:ident, label: :a)),
-            n(:field_assignment, label: :b, value: n(:int, value: 0)),
+            n(:field_assignment, label: :b, value: n(:uint, value: 0)),
             n(:field_assignment, label: :x, value: n(:field, label: :a))])])
     end
 
@@ -63,6 +63,10 @@ module Minotaur
         converted_ast = converted_ast.children[0]
       end
       expect(converted_ast).to eq converted
+    end
+
+    def n(kind, **kwargs)
+      Minotaur::n(kind, **kwargs)
     end
   end
 end
