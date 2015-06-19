@@ -9,7 +9,7 @@ module Minotaur
   class TypeAnalyser
     def initialize(ast)
       @ast = ast
-      @structs = {}
+      @types = {}
       @functions = {main: {overloads: [{argc: Builtin::Size, argv: Builtin::CharPtr}], _c_type: [Builtin::Int]}}
       @instances = {}
       @current_function = @functions[:main][:overloads][-1]
@@ -17,7 +17,7 @@ module Minotaur
 
     def analyze
       analyze_node(@ast)
-      {ast: @ast, functions: @functions, instances: @instances}
+      {ast: @ast, functions: @functions, instances: @instances, types: @types}
       # go through all
       # infer and annotate
     end
@@ -31,7 +31,7 @@ module Minotaur
     end
 
     def analyze_class(node)
-      @structs[node.label] = Hash[node.fields.map { |f| [f.label, f.c_type] }]
+      @types[node.label] = Hash[node.fields.map { |f| [f.label, f.c_type] }]
     end
 
     def analyze_function(node)
@@ -68,11 +68,11 @@ module Minotaur
 
       analyze_type(node.attr)
       if node.receiver.c_type.pointer?
-        s = @structs[node.receiver.c_type.base.label.to_sym]
+        s = @types[node.receiver.c_type.base.label.to_sym]
         kind = :pointer_attr
         p_type = node.receiver.c_type
       else
-        s = @structs[node.receiver.c_type.label.to_sym]
+        s = @types[node.receiver.c_type.label.to_sym]
         kind = :attr
         p_type = Pointer.new(node.receiver.c_type)
       end

@@ -118,7 +118,7 @@ module Minotaur
     end
 
     def generic?
-      false
+      @type_args.any?(&:generic?)
     end
 
     def pointer?
