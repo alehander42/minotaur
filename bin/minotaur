@@ -16,9 +16,9 @@ else
   source = File.read(filename)
   ruby_ast 		 = Parser::Ruby22.parse(source)
   p ruby_ast if show_ruby
-  ast            = Minotaur::convert_ast(source)
+  ast            = Minotaur::convert_ast(ruby_ast)
   p ast if show_ast
-  typed_data     = Minotaur::type_analyse(ast)
+  typed_data     = Minotaur::type_analyze(ast)
   p typed_data[:ast] if show_typed_ast
   expanded_ast   = Minotaur::expand_ast(typed_data)
   c              = Minotaur::generate_c(expanded_ast)

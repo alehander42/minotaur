@@ -14,6 +14,7 @@ module Minotaur
       @types = types
       @expanded_types = []
       @expanded_functions = []
+      @includes = []
       prepare
     end
 
@@ -26,15 +27,7 @@ module Minotaur
         functions: @expanded_functions)
     end
 
-    def expand_instances
-      @instances.each do |type, sets|
-        sets.each do |set|
-          expand_instance(type, set)
-        end
-      end
-    end
-
-    def expand_instance(type, set)
+    def expand_types
       @type_nodes.each do |node|
         if node.c_type.generic?
           g = node.c_type.type_args.select { |arg| arg.generic? }.map {
@@ -51,6 +44,10 @@ module Minotaur
           end
         end
       end
+    end
+
+    def expand_functions
+
 
       @function_nodes.each do |node|
         if node.c_type.generic?
@@ -83,11 +80,17 @@ module Minotaur
           main << child
         end
       end
-      @function_nodes << n(:function, label: :main, args:
+      @function_nodes << n(:function, c_type: GenericInstanceType.new(
+                           Builtin::Function, [Builtin::Size, Builtin::CharPtr]), label: :main, args:
                       [n(:arg, c_type: Builtin::Size, label: :argc),
                        n(:arg, c_type: Builtin::CharPtr, label: :argv)],
                      return_type: Builtin::Int,
                      body: main)
     end
+
+    def n(kind, **kwargs)
+      Minotaur::n(kind, **kwargs)
+    end
+
   end
 end

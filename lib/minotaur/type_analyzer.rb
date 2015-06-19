@@ -17,9 +17,22 @@ module Minotaur
 
     def analyze
       analyze_node(@ast)
+      populate_instances(@ast)
       {ast: @ast, functions: @functions, instances: @instances, types: @types}
       # go through all
       # infer and annotate
+    end
+
+    def populate_instances(node)
+      return unless node.is_a?(Node)
+
+      if node.c_type && node.c_type.generic?
+        r = node.c_type.pointer? ? node.c_type.base : node.c_type
+        gm = r.base.type_args.zip(r.type_args).select { |b, a| b.generic? }
+        @instances[r.base.label] ||= []
+        @instances[r.base.label] << Hash[gm.map { |b, a| [b.label, a] }]
+      end
+      node.node_fields.each { |field| populate_instances(node.send(field)) }
     end
 
     def analyze_node(node)
@@ -38,13 +51,13 @@ module Minotaur
       c_type = GenericInstanceType.new(Builtin::Function, node.args.map(&:c_type) + [node.return_type])
 
       if @functions.key?(node.label) #overload
-        @functions[node.label].overloads << {}
-        @current_function = @functions[node.label].overloads[-1]
+        @functions[node.label][:overloads] << {}
+        @current_function = @functions[node.label][:overloads][-1]
         current_type = @functions[node.label][:_c_type]
         c_type = VariantType.new(current_type, c_type)
       else
         @functions[node.label] = {_c_type: c_type, overloads: [{}]}
-        @current_function = @functions[node.label].overloads[-1]
+        @current_function = @functions[node.label][:overloads][-1]
       end
       node.args.each { |a| @current_function[a.label] = a.c_type }
       node.body.each(&method(:analyze_node))
@@ -153,8 +166,8 @@ module Minotaur
       analyze_node(node.callee)
       analyze_seq(node.args)
       if node.callee.c_type.base == Builtin::Function
-        node.callee.c_type.type_args.zip(node.args).each do |t, arg|
-          expect_type(t, arg)
+        node.callee.c_type.type_args.zip(node.args).to_a[0..node.args.length - 1].each do |t, arg|
+          expect_type(t, arg.c_type)
         end
       else
         raise TypeError.new("#{node.callee.c_type} doesn't support call")
@@ -200,7 +213,7 @@ module Minotaur
       node.c_type = GenericInstanceType.new(Builtin::List, [element_type])
     end
 
-    def expect_type(expected, given)
+    def expect_type(expected, given, silent: false)
       if expected == Builtin::UInt
         if Builtin::UINT_TYPES.include?(given)
           return true
@@ -214,7 +227,15 @@ module Minotaur
           return true
         end
       end
-      raise TypeError.new("expected #{expected.to_c} got #{given.to_c}")
+      unless silent
+        raise TypeError.new("expected #{expected.to_c} got #{given.to_c}")
+      end
+    end
+
+    def expect_type_in(a, types)
+      unless types.any? { |type| expect_type(type, a, silent: true) }
+        raise TypeError.new("expected one of #{types} got #{a.to_c}")
+      end
     end
   end
 end

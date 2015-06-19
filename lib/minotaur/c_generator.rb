@@ -22,6 +22,10 @@ module Minotaur
     def rparen
       @out << ')'
     end
+
+    def ws
+      @out << ' '
+    end
   end
 
   class CGenerator < Generator
@@ -36,7 +40,15 @@ module Minotaur
     end
 
     def offset(depth)
-      '    ' * depth
+      @out << '    ' * depth
+    end
+
+    def semi
+      @out << ';'
+    end
+
+    def comma
+      @out << ','
     end
 
     def write(node, depth = 0, parens: false)
@@ -68,6 +80,8 @@ module Minotaur
     end
 
     def generate_module(node, depth = 0)
+      p node.node_fields
+      p node.includes
       generate_includes(node.includes)
       nl
       generate_types(node.types)
@@ -104,10 +118,99 @@ module Minotaur
     def generate_struct(node, depth = 0)
       s "typedef struct #{node.label} {"
       nl
-      node.fields.each do |field|
-        generate field, depth + 1
+      node.fields[0...-1].each do |field|
+        write field, depth + 1
+        comma
+        nl
       end
+      write node.fields.last, depth + 1
+      nl
       s "} #{node.label};"
+    end
+
+    def generate_function(node, depth = 0)
+      write_ctype node.return_type
+      ws
+      s node.label
+      lparen
+      node.args[0...-1].each { |arg| write arg; comma; ws }
+      write(node.args.last) if node.args.last
+      rparen
+      s "{\n"
+      node.body[0...-1].each { |child| write child, depth + 1; semi; nl }
+      unless node.c_type == Builtin::Void || node.label == :main || node.body.empty?
+        offset(depth + 1)
+        s 'return '
+        write node.body.last
+        semi
+        nl
+      else
+        if !node.body.empty?
+          write node.body.last, depth + 1
+          semi
+          nl
+        end
+      end
+
+      offset(depth)
+      s "}\n"
+    end
+
+    def generate_arg(node, depth = 0)
+      write_ctype node.c_type
+      ws
+      s node.label
+    end
+
+    def generate_type_declaration(node, depth = 0)
+      write_ctype node.c_type
+      ws
+      s node.label
+    end
+
+    def generate_int(node, depth = 0)
+      s node.value.to_s
+    end
+
+    def generate_uint(node, depth = 0)
+      s node.value.to_s
+    end
+
+    def generate_binary_math(node, depth = 0)
+      write node.left
+      s " #{node.op} "
+      write node.right
+    end
+
+    def generate_binary_compare(node, depth = 0)
+      write node.left
+      s " #{node.op} "
+      write node.right
+    end
+
+    def generate_string(node, depth = 0)
+      s "MString_new(\"#{node.value}\")"
+    end
+
+    def generate_ident(node, depth = 0)
+      s node.label.to_s
+    end
+
+    def generate_call(node, depth = 0)
+      write node.callee
+      lparen
+      node.args[0...-1].map { |z| write z; coma; ws }
+      write node.args.last unless node.args.empty?
+      rparen
+    end
+
+    def write_ctype(ctype, depth = 0)
+      if ctype.pointer?
+        write_ctype ctype.base
+        s '*'
+      else
+        s ctype.to_c
+      end
     end
   end
 end
