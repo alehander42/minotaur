@@ -18,9 +18,9 @@ else
   p ruby_ast if show_ruby
   ast            = Minotaur::convert_ast(source)
   p ast if show_ast
-  typed_ast      = Minotaur::type_analyse(ast)
-  p typed_ast if show_typed_ast
-  expanded_ast   = Minotaur::expand_ast(ast)
+  typed_data     = Minotaur::type_analyse(ast)
+  p typed_data[:ast] if show_typed_ast
+  expanded_ast   = Minotaur::expand_ast(typed_data)
   c              = Minotaur::generate_c(expanded_ast)
   File.write("#{filename}.c", c)
   if to_binary

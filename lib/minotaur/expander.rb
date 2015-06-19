@@ -2,13 +2,15 @@
 # generate normal c function nodes
 
 module Minotaur
-  def self.expand_ast(ast)
-    Expander.new(ast).expand
+  def self.expand_ast(typed_data)
+    Expander.new(**typed_data).expand
   end
 
   class Expander
-  	def initialize(ast)
+  	def initialize(ast:, functions:, instances:)
   	  @ast = ast
+      @functions = functions
+      @instances = instances
   	end
 
   	def expand

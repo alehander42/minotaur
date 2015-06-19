@@ -19,7 +19,7 @@ module Minotaur
 
     it 'should recognize pointer to generic types' do
       expect_pointer('Dict![Int16, Int32]', 'MDict_int16_t_int32_t*',
-                     base: GenericType.new(Builtin::Dict, [Builtin::Int16, Builtin::Int32]))
+                     base: GenericInstanceType.new(Builtin::Dict, [Builtin::Int16, Builtin::Int32]))
     end
 
     def to_type(code)
@@ -44,7 +44,7 @@ module Minotaur
 
     def expect_generic(code, c, base:, type_args:)
       c_type = to_type(code)
-      expect(c_type.class).to be GenericType
+      expect(c_type.class).to be GenericInstanceType
       expect(c_type.to_c).to eq c
       expect(c_type.base).to eq base
       expect(c_type.type_args).to eq type_args
