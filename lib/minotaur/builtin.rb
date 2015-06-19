@@ -28,6 +28,7 @@ module Minotaur
 
     CharPtr = PointerType.new(Char)
     UIntPtr = PointerType.new(UInt)
+    VoidPtr = PointerType.new(Void)
 
     INT_TYPES = [Int, Int8, Int16, Int32, Int64]
     UINT_TYPES = [UInt, Size, UInt8, UInt16, UIntPt, UInt32, UInt64]

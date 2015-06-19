@@ -54,6 +54,7 @@ module Minotaur
     end
 
     def convert_field(node)
+      p node
       n(:type_declaration,
         label: node.children[1],
         c_type: to_ctype(node.children[2]))
@@ -140,6 +141,10 @@ module Minotaur
 
     def convert_ivar(node)
       n(:field, label: node.children.first[1..-1].to_sym)
+    end
+
+    def convert_nil(node)
+      n(:null)
     end
 
     def n(kind, **kwargs)

@@ -43,8 +43,10 @@ module Minotaur
       node.children.each(&method(:analyze_node))
     end
 
-    def analyze_class(node)
+    def analyze_struct(node)
       @types[node.label] = Hash[node.fields.map { |f| [f.label, f.c_type] }]
+      node.c_type = BaseType.new(node.label)
+      @types[node.label][:_c_type] = node.c_type
     end
 
     def analyze_function(node)
@@ -106,11 +108,22 @@ module Minotaur
     def analyze_assignment(node)
       analyze_node(node.value)
       if @current_function.key?(node.target)
-        assert @current_function[node.target] == node.value.c_type
+        expect_type(@current_function[node.target], node.value.c_type)
       else
         @current_function[node.target] = node.value.c_type
       end
       node.c_type = node.value.c_type
+    end
+
+    def analyze_field_assignment(node)
+      analyze_node(node.value)
+      if @current_function.key?(:self)
+        self_type = @current_function[:self].base
+        expect_type(@types[self_type.label][node.label], node.value.c_type)
+        node.c_type = node.value.c_type
+      else
+        raise TypeError.new("no self for @#{node.label}")
+      end
     end
 
     def analyze_int(node)
@@ -213,8 +226,16 @@ module Minotaur
       node.c_type = GenericInstanceType.new(Builtin::List, [element_type])
     end
 
+    def analyze_null(node)
+      node.c_type = Builtin::VoidPtr
+    end
+
     def expect_type(expected, given, silent: false)
-      if expected == Builtin::UInt
+      if expected.pointer? && given == Builtin::VoidPtr
+        return true
+      elsif expected == Builtin::VoidPtr && given.pointer?
+        return true
+      elsif expected == Builtin::UInt
         if Builtin::UINT_TYPES.include?(given)
           return true
         end

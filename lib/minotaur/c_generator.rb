@@ -138,7 +138,7 @@ module Minotaur
       rparen
       s "{\n"
       node.body[0...-1].each { |child| write child, depth + 1; semi; nl }
-      unless node.c_type == Builtin::Void || node.label == :main || node.body.empty?
+      unless node.return_type == Builtin::Void || node.label == :main || node.body.empty?
         offset(depth + 1)
         s 'return '
         write node.body.last
@@ -154,6 +154,13 @@ module Minotaur
 
       offset(depth)
       s "}\n"
+    end
+
+    def generate_field_assignment(node, depth = 0)
+      s 'self->'
+      s node.label
+      s ' = '
+      write node.value
     end
 
     def generate_arg(node, depth = 0)
@@ -211,6 +218,10 @@ module Minotaur
       else
         s ctype.to_c
       end
+    end
+
+    def generate_null(node, depth = 0)
+      s 'NULL'
     end
   end
 end

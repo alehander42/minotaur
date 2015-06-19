@@ -42,6 +42,8 @@ module Minotaur
             end
             @expanded_types << new_node
           end
+        else
+          @expanded_types << node
         end
       end
     end
