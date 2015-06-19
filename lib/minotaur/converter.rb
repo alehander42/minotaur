@@ -54,7 +54,6 @@ module Minotaur
     end
 
     def convert_field(node)
-      p node
       n(:type_declaration,
         label: node.children[1],
         c_type: to_ctype(node.children[2]))

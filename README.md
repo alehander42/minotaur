@@ -1,5 +1,7 @@
 # minotaur
 
+unfinished(yet)
+
 ```ruby
 class XClass
     id      UInt16
