@@ -40,6 +40,14 @@ List_String get_labels(List_XValue elements) {
 }
 ```
 
+features
+
+* sum types
+* generic types
+* function overloading
+* default args(sometimes)
+* local type inference
+
 
 ```ruby
 class XClass
