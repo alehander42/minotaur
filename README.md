@@ -5,6 +5,43 @@
 unfinished(yet)
 
 ```ruby
+XValue = XClass | XObject
+
+def get_labels(elements: [XValue]) [String]
+  map(elements) { |e| e.label }
+end
+```
+
+```c
+enum _XValueType { _XClass, _XObject };
+
+typedef struct XValue {
+    _XValueType _type;
+    union {
+        XClass _v0;
+        XValue _v1;
+    };
+}
+
+List_String get_labels(List_XValue elements) {
+    int i;
+    List_String labels = List_String_new(elements.length);
+    for(i = 0;i < elements.length;i ++) {
+        switch(elements->values[i]._type) {
+            case _XClass: 
+                labels->values[i] = elements->values[i]._v0.label;
+        	break;
+            case _XValue:
+            	labels->values[i] = elements->values[i]._v1.name;
+        	break;
+        }
+    }
+    return elements;
+}
+```
+
+
+```ruby
 class XClass
     id      UInt16
     parent  XClass!
