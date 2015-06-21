@@ -48,6 +48,48 @@ features
 * default args(sometimes)
 * local type inference
 
+```ruby
+def has_value?(dict!: {:k => :v}, value: :v) Bool
+    for k in dict
+        return true if dict[k] == v
+    end
+    false
+end
+
+has_value?({'s' => 2}, 2)
+has_value?({2=>4}, 3)
+```
+
+```c
+// impl of dict for String, Int
+// impl of dict for Int, Int
+
+bool has_value_string_int(Dict_String_Int* dict, String value) {
+    int i = 0;
+    String* keys = keys(dict);
+    for(i = 0;i < dict->length;i++) {
+        if (get_dict_value_string_int(dict, keys[i]) == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool has_value_int_int(Dict_Int_Int* dict, int value) {
+    int i = 0;
+    int* keys = keys(dict);
+    for(i = 0;i < dict->length;i++) {
+        if (get_dict_value_string_int(dict, keys[i]) == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+has_value_string_int(_dict0, 2);
+has_value_int_int(_dict1, 3);
+```
+
 
 ```ruby
 class XClass
